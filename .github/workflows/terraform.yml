@@ -16,7 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_VAR_notification_email: ${{ secrets.NOTIFICATION_EMAIL }}
-      TF_VAR_notification_phone: ${{ secrets.NOTIFICATION_PHONE }}
 
     steps:
       - name: Checkout

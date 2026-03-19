@@ -12,11 +12,6 @@ variable "notification_email" {
   type        = string
 }
 
-variable "notification_phone" {
-  description = "Phone number to receive order notifications (+55...)"
-  type        = string
-}
-
 # SNS Topic
 resource "aws_sns_topic" "orders_topic" {
   name = "orders_topic"
@@ -30,12 +25,6 @@ resource "aws_sns_topic_subscription" "email_sub" {
   topic_arn = aws_sns_topic.orders_topic.arn
   protocol  = "email"
   endpoint  = var.notification_email
-}
-
-resource "aws_sns_topic_subscription" "sms_sub" {
-  topic_arn = aws_sns_topic.orders_topic.arn
-  protocol  = "sms"
-  endpoint  = var.notification_phone
 }
 
 # -------------------------------------------------------------------------

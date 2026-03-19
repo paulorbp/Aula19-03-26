@@ -1,7 +1,6 @@
   {
     "order_id": "1",
     "customer_id": "2",
-    "email": "customer1@example.com",
     "status": "PLACED",
     "items": [
       {

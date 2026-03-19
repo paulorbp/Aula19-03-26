@@ -6,7 +6,6 @@ const generateData = () => {
         data.push({
             order_id: i.toString(),
             customer_id: ((i % 5) + 1).toString(),
-            email: `customer${i}@example.com`,
             status: "PLACED",
             items: [
                 {
