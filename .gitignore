@@ -1,1 +1,5 @@
 .agent
+.terraform/*
+.terraform.lock.hcl
+terraform.state
+terraform.tfstate.backup
