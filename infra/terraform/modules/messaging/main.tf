@@ -3,9 +3,17 @@ variable "project_name" {
   default = "event-driven-arch"
 }
 
+data "aws_iam_role" "lab_role" {
+  name = "LabRole"
+}
+
 # SNS Topic
 resource "aws_sns_topic" "orders_topic" {
   name = "orders_topic"
+
+  sqs_success_feedback_role_arn    = data.aws_iam_role.lab_role.arn
+  sqs_success_feedback_sample_rate = 100
+  sqs_failure_feedback_role_arn    = data.aws_iam_role.lab_role.arn
 }
 
 # -------------------------------------------------------------------------
