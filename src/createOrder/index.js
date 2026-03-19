@@ -10,16 +10,17 @@ const sqsClient = new SQSClient({});
 
 exports.handler = async (event) => {
     console.log("Event:", JSON.stringify(event));
-    
+
     try {
         const { email, ...orderData } = JSON.parse(event.body);
-        
+
         // Validation
         if (!orderData.order_id || !orderData.customer_id || !orderData.items || orderData.items.length === 0) {
             return {
                 statusCode: 400,
                 body: JSON.stringify({ message: "Validation failed: order_id, customer_id, and items are required." })
             };
+            throw error;
         }
 
         // Persist in Order DynamoDB
@@ -28,7 +29,7 @@ exports.handler = async (event) => {
             Item: orderData,
             ConditionExpression: "attribute_not_exists(order_id)"
         };
-        
+
         try {
             await docClient.send(new PutCommand(putParams));
         } catch (error) {
