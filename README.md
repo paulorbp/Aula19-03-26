@@ -98,3 +98,10 @@ O projeto utiliza **GitHub Actions** (`.github/workflows/terraform.yml`) para:
 1. Validar mudanças no Terraform.
 2. Gerenciar o estado (`tfstate`) remotamente em um bucket S3.
 3. Aplicar automaticamente as mudanças na branch `main`.
+4. Para uso do Github Actions, devem ser atualizadas as seguintes variáveis no Secrets do Github:
+  - AWS_ACCESS_KEY_ID
+  - AWS_SECRET_ACCESS_KEY
+  - AWS_SESSION_TOKEN
+  - AWS_REGION
+  - NOTIFICATION_EMAIL
+   
