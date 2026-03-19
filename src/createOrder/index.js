@@ -10,14 +10,9 @@ const sqsClient = new SQSClient({});
 
 exports.handler = async (event) => {
     console.log("Event:", JSON.stringify(event));
-    console.log("DLQ_URL:", process.env.DLQ_URL);
     
     try {
-        const { email, forceError, ...orderData } = JSON.parse(event.body);
-        
-        if (forceError) {
-            throw new Error("Forced error for DLQ testing");
-        }
+        const { email, ...orderData } = JSON.parse(event.body);
         
         // Validation
         if (!orderData.order_id || !orderData.customer_id || !orderData.items || orderData.items.length === 0) {
