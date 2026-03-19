@@ -160,6 +160,33 @@ resource "aws_sqs_queue" "create_order_dlq" {
   name = "create_order_dlq"
 }
 
+resource "aws_sqs_queue_policy" "create_order_dlq_policy" {
+  queue_url = aws_sqs_queue.create_order_dlq.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect    = "Allow"
+        Principal = { Service = "sns.amazonaws.com" }
+        Action    = "sqs:SendMessage"
+        Resource  = aws_sqs_queue.create_order_dlq.arn
+        Condition = {
+          ArnEquals = { "aws:SourceArn": aws_sns_topic.orders_topic.arn }
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_sns_topic_subscription" "create_order_dlq_sub" {
+  topic_arn = aws_sns_topic.orders_topic.arn
+  protocol  = "sqs"
+  endpoint  = aws_sqs_queue.create_order_dlq.arn
+  filter_policy = jsonencode({
+    event_type = ["OrderError"]
+  })
+}
+
 # -------------------------------------------------------------------------
 # Outputs
 # -------------------------------------------------------------------------

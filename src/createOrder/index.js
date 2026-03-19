@@ -1,12 +1,18 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
 const { SNSClient, PublishCommand } = require('@aws-sdk/client-sns');
-const { SQSClient, SendMessageCommand } = require('@aws-sdk/client-sqs');
 
 const ddbClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(ddbClient);
 const snsClient = new SNSClient({});
-const sqsClient = new SQSClient({});
+
+class ResponseError extends Error {
+    constructor(statusCode, message) {
+        super(message);
+        this.statusCode = statusCode;
+        this.name = "ResponseError";
+    }
+}
 
 exports.handler = async (event) => {
     console.log("Event:", JSON.stringify(event));
@@ -16,11 +22,7 @@ exports.handler = async (event) => {
 
         // Validation
         if (!orderData.order_id || !orderData.customer_id || !orderData.items || orderData.items.length === 0) {
-            return {
-                statusCode: 400,
-                body: JSON.stringify({ message: "Validation failed: order_id, customer_id, and items are required." })
-            };
-            throw error;
+            throw new ResponseError(400, "Validation failed: order_id, customer_id, and items are required.");
         }
 
         // Persist in Order DynamoDB
@@ -34,10 +36,7 @@ exports.handler = async (event) => {
             await docClient.send(new PutCommand(putParams));
         } catch (error) {
             if (error.name === 'ConditionalCheckFailedException') {
-                return {
-                    statusCode: 409,
-                    body: JSON.stringify({ message: "Order already exists." })
-                };
+                throw new ResponseError(409, "Order already exists.");
             }
             throw error;
         }
@@ -69,30 +68,46 @@ exports.handler = async (event) => {
         console.error("Caught Exception:", error.name, error.message);
         if (error.stack) console.error(error.stack);
 
-        // Send to DLQ
-        if (process.env.DLQ_URL) {
+        // Send to SNS for Error DLQ routing
+        if (process.env.SNS_TOPIC_ARN) {
             try {
-                const dlqParams = {
-                    QueueUrl: process.env.DLQ_URL,
-                    MessageBody: JSON.stringify({
-                        error: error.message,
-                        stack: error.stack,
-                        event: event,
-                        timestamp: new Date().toISOString()
-                    })
+                const errorParams = {
+                    TopicArn: process.env.SNS_TOPIC_ARN,
+                    Message: JSON.stringify({
+                        default: JSON.stringify({
+                            error: error.message,
+                            stack: error.stack,
+                            event: event,
+                            timestamp: new Date().toISOString()
+                        }),
+                        email: `Falha ao processar pedido!\n\nErro: ${error.message}\nVerifique a DLQ para mais detalhes.`
+                    }),
+                    MessageStructure: "json",
+                    Subject: "Erro no Processamento de Pedido",
+                    MessageAttributes: {
+                        "event_type": {
+                            DataType: "String",
+                            StringValue: "OrderError"
+                        }
+                    }
                 };
-                await sqsClient.send(new SendMessageCommand(dlqParams));
-                console.log(`Error sent to DLQ: ${process.env.DLQ_URL}`);
-            } catch (dlqError) {
-                console.error(`Failed to send error to DLQ (${process.env.DLQ_URL}):`, dlqError);
+                await snsClient.send(new PublishCommand(errorParams));
+                console.log(`Error event sent to SNS: ${process.env.SNS_TOPIC_ARN}`);
+            } catch (snsError) {
+                console.error(`Failed to send error event to SNS (${process.env.SNS_TOPIC_ARN}):`, snsError);
             }
         } else {
-            console.warn("DLQ_URL environment variable is not set. Skipping DLQ send.");
+            console.warn("SNS_TOPIC_ARN environment variable is not set. Skipping SNS send for error.");
         }
 
+        const statusCode = error.statusCode || 500;
+        const bodyContent = error.statusCode 
+            ? { message: error.message }
+            : { message: "Internal Server Error", error: error.message };
+
         return {
-            statusCode: 500,
-            body: JSON.stringify({ message: "Internal Server Error", error: error.message })
+            statusCode: statusCode,
+            body: JSON.stringify(bodyContent)
         };
     }
 };

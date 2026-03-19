@@ -28,16 +28,16 @@ module "messaging" {
 }
 
 module "compute" {
-  source                = "./modules/compute"
-  order_table_name      = module.database.order_table_name
-  billing_table_name    = module.database.billing_table_name
-  inventory_table_name  = module.database.inventory_table_name
-  shipping_table_name   = module.database.shipping_table_name
-  orders_topic_arn      = module.messaging.orders_topic_arn
-  billing_queue_arn     = module.messaging.billing_queue_arn
-  inventory_queue_arn   = module.messaging.inventory_queue_arn
-  shipping_queue_arn    = module.messaging.shipping_queue_arn
-  create_order_dlq_url  = module.messaging.create_order_dlq_url
+  source               = "./modules/compute"
+  order_table_name     = module.database.order_table_name
+  billing_table_name   = module.database.billing_table_name
+  inventory_table_name = module.database.inventory_table_name
+  shipping_table_name  = module.database.shipping_table_name
+  orders_topic_arn     = module.messaging.orders_topic_arn
+  billing_queue_arn    = module.messaging.billing_queue_arn
+  inventory_queue_arn  = module.messaging.inventory_queue_arn
+  shipping_queue_arn   = module.messaging.shipping_queue_arn
+  create_order_dlq_url = module.messaging.create_order_dlq_url
 }
 
 module "api_gateway" {
