@@ -104,4 +104,3 @@ O projeto utiliza **GitHub Actions** (`.github/workflows/terraform.yml`) para:
   - AWS_SESSION_TOKEN
   - AWS_REGION
   - NOTIFICATION_EMAIL
-   
