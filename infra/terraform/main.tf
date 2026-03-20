@@ -9,7 +9,7 @@ terraform {
   # A unicidade do arquivo de estado deve ser garantida via configuração no init ou 
   # manualmente no nome da key/bucket.
   backend "s3" {
-    key    = "state/terraform.tfstate.events.ACCOUNT_ID" # Substituir ACCOUNT_ID dinamicamente no CI/CD se necessário
+    key    = "state/terraform.tfstate.events.paulorbp" # Substituir ACCOUNT_ID dinamicamente no CI/CD se necessário
     region = "us-east-1"
   }
 }
