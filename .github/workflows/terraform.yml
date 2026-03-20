@@ -5,6 +5,7 @@ on:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
 
 env:
   TF_STATE_BUCKET_NAME: "event-driven-arch-tf-state-${{ github.repository_owner }}"
